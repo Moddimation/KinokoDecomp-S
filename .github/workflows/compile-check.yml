@@ -9,7 +9,8 @@ permissions:
 
 jobs:
   compile_verify:
-    if: github.repository == 'MonsterDruide1/OdysseyDecomp'
+    #if: github.repository == 'Moddimation/KinokoDecomp-S'
+    if: false
     runs-on: ubuntu-24.04
     steps:
     - name: Check out project
@@ -50,16 +51,15 @@ jobs:
       with:
         workspaces: "tools/common/viking"
         cache-directories: |
-          toolchain/clang-3.9.1
-          toolchain/clang-4.0.1
+          toolchain/clang-8.0.0
     - name: Download main.nso from secret
       env:
         EXEFS_SHARED_PASS: ${{ secrets.EXEFS_SHARED_PASS }}
-      run: curl -u "github-odyssey:$EXEFS_SHARED_PASS" https://monsterdruide.one/secrets/smo-main.nso -O
+      run: curl -u "github-kinoko_s:$EXEFS_SHARED_PASS" https://moddimation.my/secrets/smo-main.nso -O
     - name: Run setup
-      run: tools/setup.py smo-main.nso
+      run: python tools/setup.py smo-main.nso
     - name: Build project
-      run: tools/build.py
+      run: python tools/build.py
     - name: Verify function states
       run: |
         var="$(tools/check 2> errfile || true)"
