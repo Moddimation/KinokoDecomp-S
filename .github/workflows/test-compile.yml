@@ -31,4 +31,4 @@ jobs:
     - name: Create testing source files
       run: bash ./.github/scripts/test-compile-create.sh
     - name: Build project
-      run: tools/build.py
+      run: python tools/build.py
