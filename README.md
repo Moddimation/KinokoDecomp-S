@@ -90,9 +90,7 @@ Additionally, you'll also need:
     * This will:
         * install tools/check to check for differences in decompiled code
         * convert the executable if necessary
-        * set up [Clang 3.9.1](https://releases.llvm.org/download.html#3.9.1) by downloading it from the official LLVM
-          website
-        * set up [Clang 4.0.1](https://releases.llvm.org/download.html#4.0.1) by downloading it from the official LLVM
+        * set up [Clang 8.0.0](https://releases.llvm.org/download.html#8.0.0) by downloading it from the official LLVM
           website
         * create a build directory in `build/`
     * If something goes wrong, follow the instructions given to you by the script.
@@ -115,13 +113,9 @@ To check whether everything built correctly, just run `tools/check` after the bu
 # Contributing
 
 Anyone is welcome to contribute to this project, just send a pull request!
-
-### TODO
-
-- Enable comparison between different versions and check for mis-matches in all versions using `tools/check`
-- 1.3.0 uses a different optimization method, find it and implement it into the toolchain
-
 # Credits
 
 This decompilation uses [this](https://github.com/open-ead/sead) as a reference for the sead library used. Big thanks to
 their research!
+It also uses the [OdysseyDecomp](https://github.com/MonsterDruide1/OdysseyDecomp) as a baseplate, thanks for the heavy work of building such a toolset!
+And lastly, the code in this repo was carried over and updated from an [older decompilation hosted by shibboleet](https://github.com/shibbo/cttt-decomp), thanks for that too!
