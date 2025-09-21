@@ -1,25 +1,61 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+*.dist-info/
+.mypy_cache/
+.benchmarks/
+
+# Binaries
+*.so
+*.dll
+*.elf
+*.nso
+dist/
+build/
+build-*/
+bin/
+
+# IDEs
+.idea/
+.vscode/
 .vs
-.vscode
-.editorconfig
-tools/*.exe
-tools/*.dll
-deps
-*.idb
+.cache/
+.DS_Store
+/cmake-build-*
+compile_commands.json
+.clangd
+manifest.json
+.lite_project.lua
+
+# IDA
 *.id0
 *.id1
 *.id2
+*.idb
+*.i64
 *.nam
 *.til
-*.o
-*.out
-*.elf
-*.dol
-*.a
-*.d
-build
-__pycache__
-.ninja_log
-.ninja_deps
-build.ninja
-map/*
-*.nso
+
+# Ghidra
+*.gpr
+*.rep/
+*.lock
+!flake.lock
+
+# Debugging
+perf.data
+perf.data.old
+.gdb_history
+
+# Tooling
+/toolchain/clang-*
+toolchain/include
+toolchain/cache-version-url.txt
+tools/check
+tools/listsym
+tools/decompme
+
+# direnv
+.direnv/
+.envrc.private

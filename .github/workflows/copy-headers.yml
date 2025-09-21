@@ -1,0 +1,82 @@
+# heavily inspired by https://www.paigeniedringhaus.com/blog/copy-files-from-one-repo-to-another-automatically-with-git-hub-actions
+
+name: Copy headers to separate repo
+
+on:
+  push:
+  pull_request_target:
+    types: [opened, synchronize]
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  copy_headers:
+    if: github.repository == 'MonsterDruide1/OdysseyDecomp'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out OdysseyDecomp project
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Check out branch if in PR
+      if: ${{ github.event_name == 'pull_request_target' }}
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        submodules: recursive
+    - name: Check out OdysseyHeaders project
+      uses: actions/checkout@v4
+      with:
+        repository: MonsterDruide1/OdysseyHeaders
+        path: ./OdysseyHeaders
+        token: ${{ secrets.HEADERS_TOKEN }}
+    - name: Create proper branch name (for PRs, in Headers repo)
+      run: |
+        if [[ $GITHUB_EVENT_NAME == 'pull_request_target' ]]
+        then
+          echo "HEADER_BRANCH=pr-$PR_NUM" >> "$GITHUB_ENV"
+          if [[ $PR_AUTHOR_NAME != '' ]]
+          then
+            echo "AUTHOR_NAME=$PR_AUTHOR_NAME" >> "$GITHUB_ENV"
+          else
+            echo "AUTHOR_NAME=$PR_AUTHOR_LOGIN" >> "$GITHUB_ENV"
+          fi
+          if [[ $PR_AUTHOR_MAIL != '' ]]
+          then
+            echo "AUTHOR_MAIL=$PR_AUTHOR_MAIL"
+          else
+            echo "AUTHOR_MAIL=$PR_AUTHOR_LOGIN@noreply.github.com" >> "$GITHUB_ENV"
+          fi
+          echo "MESSAGE=$PR_TITLE" >> "$GITHUB_ENV"
+        else
+          echo "HEADER_BRANCH=${DELETED_BRANCH#refs/heads/}" >> "$GITHUB_ENV"
+          echo "AUTHOR_NAME=$COMMIT_AUTHOR_NAME" >> "$GITHUB_ENV"
+          echo "AUTHOR_MAIL=$COMMIT_AUTHOR_MAIL" >> "$GITHUB_ENV"
+          {
+            echo 'MESSAGE<<EOF'
+            echo $COMMIT_MESSAGE
+            echo EOF
+          } >> "$GITHUB_ENV"
+        fi
+      env:
+        DELETED_BRANCH: ${{ github.event.ref }}
+        PR_NUM: ${{ github.event.pull_request.number }}
+        COMMIT_AUTHOR_NAME: ${{ github.event.commits[0].author.name }}
+        COMMIT_AUTHOR_MAIL: ${{ github.event.commits[0].author.email }}
+        COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
+        PR_AUTHOR_NAME: ${{ github.event.pull_request.user.name }}
+        PR_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
+        PR_AUTHOR_MAIL: ${{ github.event.pull_request.user.email }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+    - name: Move to correct branch of OdysseyHeaders and reset history
+      run: |
+        cd OdysseyHeaders
+        git checkout $HEADER_BRANCH 2>/dev/null || git checkout -b $HEADER_BRANCH
+        git reset --hard origin/master
+    - name: Copy files
+      run: bash ./.github/scripts/copy-headers.sh
+      env:
+        DESTINATION_PATH: ./OdysseyHeaders
+    - name: Push to OdysseyHeaders repo
+      run: bash ./.github/scripts/push-headers.sh

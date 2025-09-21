@@ -1,0 +1,38 @@
+# heavily inspired by https://www.paigeniedringhaus.com/blog/copy-files-from-one-repo-to-another-automatically-with-git-hub-actions
+
+name: Clean/Delete branches when removed from Decomp/PRs closed
+
+on:
+  delete:
+  pull_request_target:
+    types: [closed]
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  copy_headers:
+    if: github.repository == 'MonsterDruide1/OdysseyDecomp'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out OdysseyHeaders project
+      uses: actions/checkout@v4
+      with:
+        repository: MonsterDruide1/OdysseyHeaders
+        path: ./OdysseyHeaders
+        token: ${{ secrets.HEADERS_TOKEN }}
+    - name: Create proper branch name (for PRs, in Headers repo)
+      run: |
+        if [[ $GITHUB_EVENT_NAME == 'pull_request_target' ]]
+        then
+          echo "HEADER_BRANCH=pr-$PR_NUM" >> "$GITHUB_ENV"
+        else
+          echo "HEADER_BRANCH=$DELETED_BRANCH" >> "$GITHUB_ENV"
+        fi
+      env:
+        DELETED_BRANCH: ${{ github.event.ref }}
+        PR_NUM: ${{ github.event.number }}
+    - name: Delete branch from OdysseyHeaders
+      run: |
+        cd OdysseyHeaders
+        git push -d origin $HEADER_BRANCH

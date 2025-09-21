@@ -1,17 +1,127 @@
-# cttt-decomp
-A decompilation of the Nintendo Switch version of Captain Toad: Treasure Tracker [v1.3.0].
+<!--# OdysseyDecomp ![Decompiled Status](https://img.shields.io/badge/dynamic/json?url=https://monsterdruide.one/OdysseyDecomp/progress.json&query=$.matching&suffix=%&label=decompiled&color=blue)-->
 
-<img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/shibbo/cttt-decomp/main/data/percent.json?token=GHSAT0AAAAAABQVV32DV7KL6LDMN74ZLIDSYPGCQBA&style=flat" />
-<a href="https://discord.gg/x7qhJKU3QN">
-<img src="https://img.shields.io/discord/932498947715522610?logo=discord"
-    alt="chat on our Discord"></a>
+Decompilation of Captain Toad: Treasure Tracker version 1.3.0.
 
-## Build Instructions
+# Building
 
-1. Obtain a clean copy of a `main` from Captain Toad: Treasure Tracker v1.3.0 and rename it to `cttt.nso`, and place it on the root.
-2. Run `setup.py` to download and install all of the dependencies. These dependencies are `capstone`, `elftools`, `lz4`, `ninja`, and `colorama`. It will also download a zipped file that contains the compiler and other headers for easy use of the NNSDK.
-3. Run `build.py`, then use `check.py` to verify matching status. For more information, see docs/Contributing.
+> [!IMPORTANT]
+> Reminder: **this will not produce a playable game.** This project will not allow you to play the game if you don't
+> already own it on a Switch.
 
-## Contributions
+## For Windows users
 
-Want to contribute, or learn how to contribute? Try joining our Discord server (link is at the top), and looking into docs/Contributing! We will be glad to answer any questions for people who wish to contribute. All pull requests and issues are welcome.
+While Linux is not a hard requirement, it is strongly advised
+to [set up WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to simplify the setup process. Ubuntu 24.04
+is usually a good choice.
+
+The instructions below assume that you are using Linux (native or WSL) or macOS.
+
+## 1. Set up dependencies
+
+Depending on your system and preferences, the required programs and libraries can be setup differently.
+
+Across all platforms, using the included Visual Studio Code Dev Container should work fine. In this case, just clone and
+open the folder in VS-Code, press F1 and select `Dev Containers: Rebuild and Reopen in Container`. You can copy the NSO
+executable into the container using `docker cp /path/to/main.nso [container-id]:/workspaces/main.nso`, where
+`[container-id]` is the ID listed in `docker container ls`.
+
+> [!WARNING]
+> As Dev Containers add another layer of complexity to your system, compiling the project and working with the differ
+> will be slower. If possible, prefer to install the dependencies on your system and use this project natively instead of
+> through the container.
+
+When working with NixOS or any other system with the Nix package manager, `flake.nix` should be properly set up to use
+on your system. Make sure that `direnv` is installed in your system or shell. Then create a file called `.envrc.private`
+with the following content:
+
+```bash
+export USE_NIX=true
+```
+
+Finally, run `direnv allow` to setup all dependencies. The remainder of this section can be skipped.
+
+All other systems have to manually install the required packages and programs. We will need:
+
+* Python 3.6 or newer with [pip](https://pip.pypa.io/en/stable/installation/)
+* Ninja
+* CMake 3.13+
+    * If you are on Ubuntu 18.04, you must
+      first [update CMake by using the official CMake APT repository](https://apt.kitware.com/).
+* ccache (to speed up builds)
+* xdelta3
+* clang (not for compiling SMO code, but for compiling Rust tools)
+
+Ubuntu users can install those dependencies by running:
+
+```shell
+sudo apt install python3 ninja-build cmake ccache xdelta3 clang libssl-dev libncurses5
+```
+
+If you are running Ubuntu 23.10 or later, the `libncurses5` package won't be available anymore. You can install it from
+the archive using:
+
+```shell
+wget http://archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2_amd64.deb && sudo dpkg -i libtinfo5_6.3-2_amd64.deb && rm -f libtinfo5_6.3-2_amd64.deb
+```
+
+For other systems, please check for the corresponding `libncurses5` backport, for
+example [ncurses5-compat-libs](https://aur.archlinux.org/packages/ncurses5-compat-libs) for Arch-based distributions.
+
+Additionally, you'll also need:
+
+* A Rust toolchain ([follow the instructions here](https://www.rust-lang.org/tools/install))
+* The following Python modules: `capstone colorama cxxfilt pyelftools watchdog python-Levenshtein toml` (
+  install them with `pip install ...`)
+
+## 2. Set up the project
+
+1. Clone this repository. If you are using WSL, please clone the repo *inside* WSL, *not* on the Windows side (for
+   performance reasons).
+
+2. Run `git submodule update --init --recursive`
+
+   Next, you'll need to acquire the **original 1.3 `main` NSO executable**.
+
+    * To dump it from a Switch,
+      follow [the instructions on the wiki](https://zeldamods.org/wiki/Help:Dumping_games#Dumping_binaries_.28executable_files.29).
+    * You do not need to dump the entire game (RomFS + ExeFS + DLC). Just dumping the 1.3 UPDATE ExeFS is sufficient.
+
+3. Run `tools/setup.py [path to the NSO]`
+    * This will:
+        * install tools/check to check for differences in decompiled code
+        * convert the executable if necessary
+        * set up [Clang 3.9.1](https://releases.llvm.org/download.html#3.9.1) by downloading it from the official LLVM
+          website
+        * set up [Clang 4.0.1](https://releases.llvm.org/download.html#4.0.1) by downloading it from the official LLVM
+          website
+        * create a build directory in `build/`
+    * If something goes wrong, follow the instructions given to you by the script.
+    * If you wish to use a CMake generator that isn't Ninja, use `--cmake_backend` to specify it.
+
+## 3. Build
+
+To start the build, just run
+
+```shell
+tools/build.py
+```
+
+By default, a multithreaded build is performed. No need to specify `-j` manually.
+
+Use `--clean` to perform a clean build, and `--verbose` to enable verbose output.
+
+To check whether everything built correctly, just run `tools/check` after the build completes.
+
+# Contributing
+
+Anyone is welcome to contribute to this project, just send a pull request!
+
+### TODO
+
+- Enable comparison between different versions and check for mis-matches in all versions using `tools/check`
+- 1.3.0 uses a different optimization method, find it and implement it into the toolchain
+
+# Credits
+
+This decompilation uses [this](https://github.com/open-ead/sead) as a reference for the sead library used. Big thanks to
+their research!

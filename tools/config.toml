@@ -1,0 +1,6 @@
+functions_csv = "data/kinoko-s_functions.csv"
+build_target = "kinoko-s"
+
+[decomp_me]
+compiler_name = "clang-8.0.0"
+default_compile_flags = "-x c++ -O3 -std=c++1z -fno-exceptions -Wall -Wextra -fno-common -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -fno-slp-vectorize -fomit-frame-pointer"
